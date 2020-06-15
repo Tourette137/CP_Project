@@ -1028,18 +1028,24 @@ splay l t =  undefined
 \begin{code}
 extLTree :: Bdt a -> LTree a
 extLTree = cataBdt g where
-  g = undefined
+  g = either Leaf (Fork . p2)
 
-inBdt = undefined
+-- data Bdt a = Dec a | Query (String, (Bdt a, Bdt a))
 
-outBdt = undefined
+inBdt :: Either a (String, (Bdt a, Bdt a)) -> Bdt a
+inBdt = either Dec Query
 
-baseBdt = undefined
-recBdt = undefined
+outBdt :: Bdt a -> Either a (String, (Bdt a, Bdt a))
+outBdt (Dec a) = Left a
+outBdt (Query (s,(d1,d2))) = Right (s,(d1,d2))
 
-cataBdt = undefined
+baseBdt f g = id -|- (f >< (g >< g))
 
-anaBdt = undefined
+recBdt g = baseBdt id g
+
+cataBdt g = g . (recBdt (cataBdt g)) . outBdt
+
+anaBdt f = inBdt . (recBdt (anaBdt f) ) . f
 
 navLTree :: LTree a -> ([Bool] -> LTree a)
 navLTree = cataLTree g
