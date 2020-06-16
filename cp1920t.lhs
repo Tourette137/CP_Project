@@ -999,10 +999,19 @@ dic_in = undefined
 
 \begin{code}
 maisDir = cataBTree g
-  where g = undefined
+  where g = either (const Nothing) dirAux
+
+dirAux :: (a,(Maybe a, Maybe a)) -> Maybe a
+dirAux (x,(_, Nothing)) = Just x
+dirAux (_,(_,d)) = d
 
 maisEsq = cataBTree g
-  where g = undefined
+  where g = either (const Nothing) esqAux
+
+esqAux :: (a,(Maybe a, Maybe a)) -> Maybe a
+esqAux (x,(Nothing,_)) = Just x
+esqAux (_,(e,_)) = e
+
 
 insOrd' x = cataBTree g
   where g = undefined
@@ -1015,7 +1024,12 @@ isOrd' = cataBTree g
 isOrd = undefined
 
 
-rrot = undefined
+rrot = cataBTree g
+    where g = either (const Empty) auxRRot
+
+auxRRot :: (a,(BTree a, BTree a)) -> BTree a
+auxRRot (x,(Empty, d)) = Node (x,(Empty,d))
+auxRRot (x,((Node (e,(ee,ed))),d)) = Node (e,(ee,Node(x,(ed,d))))
 
 lrot = undefined
 
@@ -1049,7 +1063,17 @@ anaBdt f = inBdt . (recBdt (anaBdt f) ) . f
 
 navLTree :: LTree a -> ([Bool] -> LTree a)
 navLTree = cataLTree g
-  where g = undefined
+    where g = either (flip(const Leaf)) (curry k)
+          k ((left , right) , [])    = Fork(left[], right[])
+          k ((left , right) , (h:t)) | h == True = left t
+                                     | otherwise = right t
+
+
+--navLTree (Leaf a) _ = Leaf a
+--navLTree (Fork(l,r)) [] = Fork(l,r)
+--navLTree (Fork(l,r)) (h:t) | h == True = navLTree l t
+--                           | otherwise = navLTree r t
+
 \end{code}
 
 
@@ -1057,7 +1081,13 @@ navLTree = cataLTree g
 
 \begin{code}
 bnavLTree = cataLTree g
-  where g = undefined
+    where g = either (flip(const Leaf)) (curry k)
+          k ((l1,r1), Empty) = Fork (l1 Empty, r1 Empty)
+          k ((l1,r1),(Node (a,(Empty,r2)))) | a == True = l1 Empty
+                                            | otherwise = r1 r2
+          k ((l1,r1),(Node (a,(l2,Empty)))) | a == True = l1 l2
+                                            | otherwise = r1 Empty
+
 
 
 pbnavLTree = cataLTree g
