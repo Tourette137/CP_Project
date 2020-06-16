@@ -987,7 +987,15 @@ dic_exp :: Dict -> [(String,[String])]
 dic_exp = collect . tar
 
 tar = cataExp g where
-  g = undefined
+  g = either gtar1 gtar2
+
+gtar1 :: String -> [(String,String)]
+gtar1 = cons . split (split nil id) nil
+
+gtar2 :: (String, [[(String,String)]]) -> [(String,String)]
+gtar2 = uncurry f . (id >< concat)
+    where f s [] = []
+          f s ((x,y):t) = (s++x,y) : f s t
 
 dic_rd = undefined
 
