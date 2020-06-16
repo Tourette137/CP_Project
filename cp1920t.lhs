@@ -970,13 +970,9 @@ outras funções auxiliares que sejam necessárias.
 \begin{code}
 discollect :: (Ord b, Ord a) => [(b, [a])] -> [(b, a)]
 discollect = concat . map disc_map
---discollect [] = []
---discollect (h:t) = f h ++ discollect t
 
 disc_map :: (Ord b, Ord a) => (b, [a]) -> [(b,a)]
 disc_map = inList . (id -|- (id >< disc_map)) . disc_map_g
---f (x, []) = []
---f (x, (h:t)) = (x,h) : f (x, t)
 
 disc_map_g :: (Ord b, Ord a) => (b, [a]) -> Either (b,()) ((b,a),(b,[a]))
 disc_map_g = out . test
@@ -1024,12 +1020,19 @@ esqAux (_,(e,_)) = e
 insOrd' x = cataBTree g
   where g = undefined
 
-insOrd a x = undefined
+insOrd a (Empty) = Node (a, (Empty, Empty))
+insOrd a (Node (x, (l,r))) | a == x = Node (x, (l,r))
+                           | a < x = Node (x, (insOrd a l,r))
+                           | otherwise = Node (x, (l,insOrd a r))
 
 isOrd' = cataBTree g
   where g = undefined
 
-isOrd = undefined
+isOrd = g . (recBTree (split maisDir isOrd)) . outBTree
+      where g = either g1 (uncurry g2)
+            g1 = true
+            g2 x ((Nothing,_), (_,b2)) = b2
+            g2 x ((Just x1,b1), (_,b2)) = x > x1 && b1 && b2
 
 rrot = (either (const Empty) (auxRRot)) . outBTree
 
