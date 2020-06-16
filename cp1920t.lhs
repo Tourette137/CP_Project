@@ -1048,7 +1048,13 @@ auxLRot :: (a,(BTree a, BTree a)) -> BTree a
 auxLRot (x,(e,Empty)) = Node (x,(e, Empty))
 auxLRot (x,(e,(Node (d,(de,dd))))) = Node (d,(Node(x,(e,de)),dd))
 
-splay l t =  undefined
+
+
+splay l t = (flip cataBTree t g) l
+    where g = either (\x -> const Empty) (curry rodar)
+          rodar ((raiz,(esq,dir)),[])    = Node(raiz,(esq[],dir[]))
+          rodar ((raiz,(esq,dir)),(h:t)) | h == True = rrot (Node(raiz, (esq [], dir t)))
+                                         | otherwise = lrot (Node(raiz, (esq t, dir [])))
 
 \end{code}
 
