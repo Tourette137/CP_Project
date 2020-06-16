@@ -1031,15 +1031,19 @@ isOrd' = cataBTree g
 
 isOrd = undefined
 
-
-rrot = cataBTree g
-    where g = either (const Empty) auxRRot
+rrot = (either (const Empty) (auxRRot)) . outBTree
 
 auxRRot :: (a,(BTree a, BTree a)) -> BTree a
-auxRRot (x,(Empty, d)) = Node (x,(Empty,d))
+auxRRot (x,(Empty,d)) = Node (x,(Empty,d))
 auxRRot (x,((Node (e,(ee,ed))),d)) = Node (e,(ee,Node(x,(ed,d))))
 
-lrot = undefined
+
+
+lrot = (either (const Empty) (auxLRot)) . outBTree
+
+auxLRot :: (a,(BTree a, BTree a)) -> BTree a
+auxLRot (x,(e,Empty)) = Node (x,(e, Empty))
+auxLRot (x,(e,(Node (d,(de,dd))))) = Node (d,(Node(x,(e,de)),dd))
 
 splay l t =  undefined
 
