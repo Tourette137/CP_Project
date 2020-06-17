@@ -970,18 +970,34 @@ outras funções auxiliares que sejam necessárias.
 \begin{code}
 discollect :: (Ord b, Ord a) => [(b, [a])] -> [(b, a)]
 discollect = concat . map disc_map
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 disc_map :: (Ord b, Ord a) => (b, [a]) -> [(b,a)]
 disc_map = inList . (id -|- (id >< disc_map)) . disc_map_g
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 disc_map_g :: (Ord b, Ord a) => (b, [a]) -> Either (b,()) ((b,a),(b,[a]))
 disc_map_g = out . test
             where test = id >< outList
                   out = (id -|- (split (id >< p1) (id >< p2))) . distr
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 dic_exp :: Dict -> [(String,[String])]
 dic_exp = collect . tar
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 tar = cataExp g where
   g = either gtar1 gtar2
 
@@ -992,12 +1008,20 @@ gtar2 :: (String, [[(String,String)]]) -> [(String,String)]
 gtar2 = uncurry f . (id >< concat)
     where f s [] = []
           f s ((x,y):t) = (s++x,y) : f s t
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 dic_rd p = cataList (g p) . dic_exp
         where g p = either nothing (g2 p)
               g2 p ((x,y), Nothing) = if p == x then Just y else Nothing
               g2 _ (_, r) = r
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 dic_in = undefined
 
 \end{code}
@@ -1008,15 +1032,27 @@ dic_in = undefined
 maisDir = cataBTree g
   where g = either nothing g2
         g2 = Just . (either p1 p2) . distr . (id >< (outMaybe . p2))
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 maisEsq = cataBTree g
   where g = either nothing g2
         g2 = Just . (either p1 p2) . distr . (id >< (outMaybe . p1))
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 outMaybe :: Maybe a -> Either () a
 outMaybe Nothing = i1 ()
 outMaybe (Just x) = i2 x
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 insOrd' x = cataBTree g
   where g = undefined
 
@@ -1024,7 +1060,11 @@ insOrd a (Empty) = Node (a, (Empty, Empty))
 insOrd a (Node (x, (l,r))) | a == x = Node (x, (l,r))
                            | a < x = Node (x, (insOrd a l,r))
                            | otherwise = Node (x, (l,insOrd a r))
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 isOrd' = cataBTree g
   where g = undefined
 
@@ -1033,23 +1073,31 @@ isOrd = g . (recBTree (split maisDir isOrd)) . outBTree
             g1 = true
             g2 x ((Nothing,_), (_,b2)) = b2
             g2 x ((Just x1,b1), (_,b2)) = x > x1 && b1 && b2
+\end{code}
 
+--------------------------------------------------------------------------------
+
+\begin{code}
 rrot = (either (const Empty) (auxRRot)) . outBTree
 
 auxRRot :: (a,(BTree a, BTree a)) -> BTree a
 auxRRot (x,(Empty,d)) = Node (x,(Empty,d))
 auxRRot (x,((Node (e,(ee,ed))),d)) = Node (e,(ee,Node(x,(ed,d))))
+\end{code}
 
+--------------------------------------------------------------------------------
 
-
+\begin{code}
 lrot = (either (const Empty) (auxLRot)) . outBTree
 
 auxLRot :: (a,(BTree a, BTree a)) -> BTree a
 auxLRot (x,(e,Empty)) = Node (x,(e, Empty))
 auxLRot (x,(e,(Node (d,(de,dd))))) = Node (d,(Node(x,(e,de)),dd))
+\end{code}
 
+--------------------------------------------------------------------------------
 
-
+\begin{code}
 splay l t = (flip cataBTree t g) l
     where g = either (\x -> const Empty) (curry rodar)
           rodar ((raiz,(esq,dir)),[])    = Node(raiz,(esq[],dir[]))
@@ -1064,24 +1112,33 @@ splay l t = (flip cataBTree t g) l
 extLTree :: Bdt a -> LTree a
 extLTree = cataBdt g where
   g = either Leaf (Fork . p2)
+\end{code}
 
--- data Bdt a = Dec a | Query (String, (Bdt a, Bdt a))
-
+\begin{code}
 inBdt :: Either a (String, (Bdt a, Bdt a)) -> Bdt a
 inBdt = either Dec Query
+\end{code}
 
+\begin{code}
 outBdt :: Bdt a -> Either a (String, (Bdt a, Bdt a))
 outBdt (Dec a) = Left a
 outBdt (Query (s,(d1,d2))) = Right (s,(d1,d2))
+\end{code}
 
+\begin{code}
 baseBdt f g = id -|- (f >< (g >< g))
+\end{code}
 
+\begin{code}
 recBdt g = baseBdt id g
+\end{code}
 
+\begin{code}
 cataBdt g = g . (recBdt (cataBdt g)) . outBdt
+\end{code}
 
+\begin{code}
 anaBdt f = inBdt . (recBdt (anaBdt f) ) . f
-
 \end{code}
 
 \begin{eqnarray*}
@@ -1101,20 +1158,12 @@ anaBdt f = inBdt . (recBdt (anaBdt f) ) . f
 \end{eqnarray*}
 
 \begin{code}
-
 navLTree :: LTree a -> ([Bool] -> LTree a)
 navLTree = cataLTree g
     where g = either (flip(const Leaf)) (curry k)
           k ((left , right) , [])    = Fork(left[], right[])
           k ((left , right) , (h:t)) | h == True = left t
                                      | otherwise = right t
-
-
---navLTree (Leaf a) _ = Leaf a
---navLTree (Fork(l,r)) [] = Fork(l,r)
---navLTree (Fork(l,r)) (h:t) | h == True = navLTree l t
---                           | otherwise = navLTree r t
-
 \end{code}
 
 
@@ -1128,67 +1177,59 @@ bnavLTree = cataLTree g
                                                  | otherwise = dir dir2
           k ((esq,dir),(Node (a ,(esq2,Empty)))) | a == True = esq esq2
                                                  | otherwise = dir Empty
+\end{code}
 
-
-
+\begin{code}
 pbnavLTree = cataLTree g
   where g = undefined
-
 \end{code}
 
 \subsection*{Problema 5}
 
 \begin{code}
-
 truchet1 = Pictures [ put (0,80) (Arc (-90) 0 40), put (80,0) (Arc 90 180 40) ]
 
 truchet2 = Pictures [ put (0,0) (Arc 0 90 40), put (80,80) (Arc 180 (-90) 40) ]
+\end{code}
 
---- janela para visualizar:
-
+\begin{code}
 janela = InWindow
              "Truchet"        -- window title
              (800, 800)       -- window size
              (100,100)        -- window position
+\end{code}
 
------ defs auxiliares -------------
-
+\begin{code}
 put  = uncurry Translate
+\end{code}
 
-{-
-problema5 :: IO ()
-problema5 = do let pics = [truchet1,truchet2]
-               play janela white 60 (estadoInicialIO) ((render pics)) (\_ -> id) (\_ -> id)
-               --where initialState = geraEstadoInicial pics 10
-                 where render pics = fmap (desenhaConjuntoImagens pics (-400) (-400))
--}
-{-}
-problem5 :: IO ()
-problem5 = do let pics = [truchet1,truchet2]
-              display janela white (controllerSetRedraw ((render pics) estadoInicialIO))
-              where render pics = fmap (desenhaConjuntoImagens pics (-400) (-400))
--}
+\begin{code}
 estadoInicialIO :: IO[[Int]]
 estadoInicialIO = randomNList 10 10
+\end{code}
 
-
+\begin{code}
 desenhaConjuntoImagens :: [Picture] -> Float -> Float -> [[Int]] -> Picture
 desenhaConjuntoImagens pics _ _ []     = blank
 desenhaConjuntoImagens pics x y (l:ls) = pictures [(desenhaListaInteiros pics x y l) , (desenhaConjuntoImagens pics (x+80) y ls)]
+\end{code}
 
+\begin{code}
 desenhaListaInteiros :: [Picture] -> Float -> Float -> [Int] -> Picture
 desenhaListaInteiros pics _ _ []     = blank
 desenhaListaInteiros pics x y (l:ls) = pictures [ put (x,y) (pics !! l) , desenhaListaInteiros pics x (y+80) ls]
+\end{code}
 
-
-
+\begin{code}
 randomList :: Int -> IO [Int]
 randomList 0 = return []
 randomList n = do
   r  <- randomRIO(0,1)
   rs <- randomList(n-1)
   return (r:rs)
+\end{code}
 
+\begin{code}
 randomNList :: Int -> Int -> IO [[Int]]
 randomNList 0 _ = return []
 randomNList _ 0 = return []
@@ -1196,14 +1237,6 @@ randomNList vezes nr = do
     r  <- randomList nr
     rs <- randomNList (vezes-1) (nr)
     return (r:rs)
- {-
-geraLista :: Int -> [Picture] -> IO [Picture]
-geraLista 0 pics = return []
-geraLista n pics = do
-  r  <- (pics !! (randomRIO(1,2)))
-  rs <- randomList(n-1)
-  return (r:rs) -}
--------------------------------------------------
 \end{code}
 
 %----------------- Fim do anexo com soluções dos alunos ------------------------%
