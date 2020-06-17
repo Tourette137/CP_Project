@@ -972,14 +972,10 @@ discollect :: (Ord b, Ord a) => [(b, [a])] -> [(b, a)]
 discollect = concat . map disc_map
 \end{code}
 
---------------------------------------------------------------------------------
-
 \begin{code}
 disc_map :: (Ord b, Ord a) => (b, [a]) -> [(b,a)]
 disc_map = inList . (id -|- (id >< disc_map)) . disc_map_g
 \end{code}
-
---------------------------------------------------------------------------------
 
 \begin{code}
 disc_map_g :: (Ord b, Ord a) => (b, [a]) -> Either (b,()) ((b,a),(b,[a]))
@@ -994,8 +990,6 @@ disc_map_g = out . test
 dic_exp :: Dict -> [(String,[String])]
 dic_exp = collect . tar
 \end{code}
-
---------------------------------------------------------------------------------
 
 \begin{code}
 tar = cataExp g where
@@ -1034,15 +1028,11 @@ maisDir = cataBTree g
         g2 = Just . (either p1 p2) . distr . (id >< (outMaybe . p2))
 \end{code}
 
---------------------------------------------------------------------------------
-
 \begin{code}
 maisEsq = cataBTree g
   where g = either nothing g2
         g2 = Just . (either p1 p2) . distr . (id >< (outMaybe . p1))
 \end{code}
-
---------------------------------------------------------------------------------
 
 \begin{code}
 outMaybe :: Maybe a -> Either () a
@@ -1062,7 +1052,6 @@ insOrd a (Node (x, (l,r))) | a == x = Node (x, (l,r))
                            | otherwise = Node (x, (l,insOrd a r))
 \end{code}
 
---------------------------------------------------------------------------------
 
 \begin{code}
 isOrd' = cataBTree g
@@ -1162,8 +1151,7 @@ navLTree :: LTree a -> ([Bool] -> LTree a)
 navLTree = cataLTree g
     where g = either (flip(const Leaf)) (curry k)
           k ((left , right) , [])    = Fork(left[], right[])
-          k ((left , right) , (h:t)) | h == True = left t
-                                     | otherwise = right t
+          k ((left , right) , (h:t)) if h then left t else rigth t
 \end{code}
 
 
@@ -1173,10 +1161,8 @@ navLTree = cataLTree g
 bnavLTree = cataLTree g
     where g = either (flip(const Leaf)) (curry k)
           k ((esq,dir), Empty) = Fork (esq Empty, dir Empty)
-          k ((esq,dir),(Node (a ,(Empty,dir2)))) | a == True = esq Empty
-                                                 | otherwise = dir dir2
-          k ((esq,dir),(Node (a ,(esq2,Empty)))) | a == True = esq esq2
-                                                 | otherwise = dir Empty
+          k ((esq,dir),(Node (a ,(Empty,dir2)))) = if a then esq Empty else dir dir2
+          k ((esq,dir),(Node (a ,(esq2,Empty)))) = if a then esq esq2 else dir Empty
 \end{code}
 
 \begin{code}
@@ -1190,16 +1176,12 @@ pbnavLTree = cataLTree g
 truchet1 = Pictures [ put (0,80) (Arc (-90) 0 40), put (80,0) (Arc 90 180 40) ]
 
 truchet2 = Pictures [ put (0,0) (Arc 0 90 40), put (80,80) (Arc 180 (-90) 40) ]
-\end{code}
 
-\begin{code}
 janela = InWindow
              "Truchet"        -- window title
              (800, 800)       -- window size
              (100,100)        -- window position
-\end{code}
 
-\begin{code}
 put  = uncurry Translate
 \end{code}
 
@@ -1214,7 +1196,9 @@ problema5 = do let pics = [truchet1,truchet2]
 \begin{code}
 desenhaConjuntoImagens :: [Picture] -> Float -> Float -> [[Int]] -> Picture
 desenhaConjuntoImagens pics _ _ []     = blank
-desenhaConjuntoImagens pics x y (l:ls) = pictures [(desenhaListaInteiros pics x y l) , (desenhaConjuntoImagens pics (x+80) y ls)]
+desenhaConjuntoImagens pics x y (l:ls) = pictures [intL, imageC]
+                                    where intL = desenhaListaInteiros pics x y l
+                                          imageC = desenhaConjuntoImagens pics (x+80) y ls
 \end{code}
 
 \begin{code}
@@ -1231,6 +1215,8 @@ randomList n = do
   rs <- randomList(n-1)
   return (r:rs)
 \end{code}
+
+--------------------------------------------------------------------------------
 
 \begin{code}
 randomNList :: Int -> Int -> IO [[Int]]
