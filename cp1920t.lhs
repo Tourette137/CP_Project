@@ -1204,8 +1204,11 @@ put  = uncurry Translate
 \end{code}
 
 \begin{code}
-estadoInicialIO :: IO[[Int]]
-estadoInicialIO = randomNList 10 10
+problema5 :: IO ()
+problema5 = do let pics = [truchet1,truchet2]
+                   imagem = (render pics) (randomNList 10 10)
+                   render pics = fmap (desenhaConjuntoImagens pics (-400) (-400))
+               (display janela white) =<< (imagem)
 \end{code}
 
 \begin{code}
