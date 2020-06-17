@@ -1082,6 +1082,26 @@ cataBdt g = g . (recBdt (cataBdt g)) . outBdt
 
 anaBdt f = inBdt . (recBdt (anaBdt f) ) . f
 
+\end{code}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Bdt B|
+&
+    |B (B,Bdt B)|
+           \ar[l]_-{|inBdt|}
+\\
+     |A|
+        \ar[u]^-{|anaBdt g|}
+        \ar[r]_-{|g|}
+&
+     |B (B,A)|
+        \ar[u]_-{|B(id,anaBdt)|}
+}
+\end{eqnarray*}
+
+\begin{code}
+
 navLTree :: LTree a -> ([Bool] -> LTree a)
 navLTree = cataLTree g
     where g = either (flip(const Leaf)) (curry k)
@@ -1135,6 +1155,54 @@ janela = InWindow
 
 put  = uncurry Translate
 
+{-
+problema5 :: IO ()
+problema5 = do let pics = [truchet1,truchet2]
+               play janela white 60 (estadoInicialIO) ((render pics)) (\_ -> id) (\_ -> id)
+               --where initialState = geraEstadoInicial pics 10
+                 where render pics = fmap (desenhaConjuntoImagens pics (-400) (-400))
+-}
+{-}
+problem5 :: IO ()
+problem5 = do let pics = [truchet1,truchet2]
+              display janela white (controllerSetRedraw ((render pics) estadoInicialIO))
+              where render pics = fmap (desenhaConjuntoImagens pics (-400) (-400))
+-}
+estadoInicialIO :: IO[[Int]]
+estadoInicialIO = randomNList 10 10
+
+
+desenhaConjuntoImagens :: [Picture] -> Float -> Float -> [[Int]] -> Picture
+desenhaConjuntoImagens pics _ _ []     = blank
+desenhaConjuntoImagens pics x y (l:ls) = pictures [(desenhaListaInteiros pics x y l) , (desenhaConjuntoImagens pics (x+80) y ls)]
+
+desenhaListaInteiros :: [Picture] -> Float -> Float -> [Int] -> Picture
+desenhaListaInteiros pics _ _ []     = blank
+desenhaListaInteiros pics x y (l:ls) = pictures [ put (x,y) (pics !! l) , desenhaListaInteiros pics x (y+80) ls]
+
+
+
+randomList :: Int -> IO [Int]
+randomList 0 = return []
+randomList n = do
+  r  <- randomRIO(0,1)
+  rs <- randomList(n-1)
+  return (r:rs)
+
+randomNList :: Int -> Int -> IO [[Int]]
+randomNList 0 _ = return []
+randomNList _ 0 = return []
+randomNList vezes nr = do
+    r  <- randomList nr
+    rs <- randomNList (vezes-1) (nr)
+    return (r:rs)
+ {-
+geraLista :: Int -> [Picture] -> IO [Picture]
+geraLista 0 pics = return []
+geraLista n pics = do
+  r  <- (pics !! (randomRIO(1,2)))
+  rs <- randomList(n-1)
+  return (r:rs) -}
 -------------------------------------------------
 \end{code}
 
