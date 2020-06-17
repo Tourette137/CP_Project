@@ -993,7 +993,10 @@ gtar2 = uncurry f . (id >< concat)
     where f s [] = []
           f s ((x,y):t) = (s++x,y) : f s t
 
-dic_rd = undefined
+dic_rd p = cataList (g p) . dic_exp
+        where g p = either nothing (g2 p)
+              g2 p ((x,y), Nothing) = if p == x then Just y else Nothing
+              g2 _ (_, r) = r
 
 dic_in = undefined
 
@@ -1003,19 +1006,16 @@ dic_in = undefined
 
 \begin{code}
 maisDir = cataBTree g
-  where g = either (const Nothing) dirAux
-
-dirAux :: (a,(Maybe a, Maybe a)) -> Maybe a
-dirAux (x,(_, Nothing)) = Just x
-dirAux (_,(_,d)) = d
+  where g = either nothing g2
+        g2 = Just . (either p1 p2) . distr . (id >< (outMaybe . p2))
 
 maisEsq = cataBTree g
-  where g = either (const Nothing) esqAux
+  where g = either nothing g2
+        g2 = Just . (either p1 p2) . distr . (id >< (outMaybe . p1))
 
-esqAux :: (a,(Maybe a, Maybe a)) -> Maybe a
-esqAux (x,(Nothing,_)) = Just x
-esqAux (_,(e,_)) = e
-
+outMaybe :: Maybe a -> Either () a
+outMaybe Nothing = i1 ()
+outMaybe (Just x) = i2 x
 
 insOrd' x = cataBTree g
   where g = undefined
