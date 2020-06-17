@@ -993,7 +993,10 @@ gtar2 = uncurry f . (id >< concat)
     where f s [] = []
           f s ((x,y):t) = (s++x,y) : f s t
 
-dic_rd = undefined
+dic_rd p = cataList (g p) . dic_exp
+        where g p = either nothing (g2 p)
+              g2 p ((x,y), Nothing) = if p == x then Just y else Nothing
+              g2 _ (_, r) = r
 
 dic_in = undefined
 
