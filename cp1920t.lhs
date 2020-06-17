@@ -1086,6 +1086,11 @@ auxLRot (x,(e,(Node (d,(de,dd))))) = Node (d,(Node(x,(e,de)),dd))
 
 --------------------------------------------------------------------------------
 
+
+A Função splay irá girar sucessivamente várias partes de uma arvore de modo a alcançar um certo nodo (através de um conjuntos de Booleanos) e que o consiga colocar no topo da mesma.
+Assim a arvore irá girar para a direita caso receba True (nodo está na esquerda) e para a esquerda caso recebe False (nodo está na direita).
+Assim o splay e revendo o tipo da mesma irá retornar uma função e não um Tipo.
+
 \begin{code}
 splay l t = (flip cataBTree t g) l
     where g = either (\x -> const Empty) (curry rodar)
@@ -1095,13 +1100,49 @@ splay l t = (flip cataBTree t g) l
 
 \end{code}
 
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |BTree A|
+        \ar[r]^-{|outBTree|}
+        \ar[d]_-{|cataBTree|}
+&
+    |1 + (A >< (BTree A >< BTree A))|
+           \ar[d]^-{|id + id >< (cataBTree >< cataBTree)|}
+\\
+     |BTree A ^ Bool*|
+&
+     |1 + A >< (((BTree A)^Bool*) >< ((BTree A)^Bool*))|
+        \ar[l]^-{|g|}
+}
+\end{eqnarray*}
+
 \subsection*{Problema 3}
+
+A Função extLtree é responsável por transformar uma Arvóres de decisões numa LTree.
+Dessa forma apenas precisamos de aplicar um simples catamorfismo, que é constituido por um Either.
+Esse irá verificar se estamos perante uma decisão e aplicar uma Leaf ou se estamos perante uma Query e aplicar um Fork, eliminando/ignorando a pergunta feita.
 
 \begin{code}
 extLTree :: Bdt a -> LTree a
 extLTree = cataBdt g where
   g = either Leaf (Fork . p2)
 \end{code}
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Bdt A|
+        \ar[r]^-{|outBTree|}
+        \ar[d]_-{|extLTree|}
+&
+    |Dec + (String >< (Bdt A >< Bdt A))|
+           \ar[d]^-{|id + id >< (extLTree >< extLTree)|}
+\\
+     |LTree A|
+&
+     |Dec + (String >< ((LTree A) >< (LTree A)))|
+        \ar[l]^-{|g|}
+}
+\end{eqnarray*}
 
 \begin{code}
 inBdt :: Either a (String, (Bdt a, Bdt a)) -> Bdt a
@@ -1146,14 +1187,34 @@ anaBdt f = inBdt . (recBdt (anaBdt f) ) . f
 }
 \end{eqnarray*}
 
+A função navLTree vai navegar ao longo de uma LTree consoante um conjunto de Booleanos dados.
+É importante perceber que a função retorna uma outra função, e não um tipo em si. Assim, dessa forma a LTree vai ser precorrida
+se for True vai para a esquerda e se for False para a direita, até chegar ao ponto que queremos. É de realçar também que na função auilizar
+olhamos para "left" e para "right" como funções e não como Tipos.
+
 \begin{code}
 navLTree :: LTree a -> ([Bool] -> LTree a)
 navLTree = cataLTree g
     where g = either (flip(const Leaf)) (curry k)
           k ((left , right) , [])    = Fork(left[], right[])
-          k ((left , right) , (h:t)) if h then left t else rigth t
+          k ((left , right) , (h:t)) = if h then left t else right t
 \end{code}
 
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |LTree A|
+        \ar[r]^-{|outLTree|}
+        \ar[d]_-{|navLTree|}
+&
+    |A + (LTree A >< LTree A)|
+           \ar[d]^-{|id + (navLTree >< navLTree)|}
+\\
+     |LTree A ^ Bool*|
+&
+     |A + (((LTree A)^Bool*) >< (LTree A)^Bool*)|
+        \ar[l]^-{|g|}
+}
+\end{eqnarray*}
 
 \subsection*{Problema 4}
 
@@ -1193,6 +1254,8 @@ problema5 = do let pics = [truchet1,truchet2]
                (display janela white) =<< (imagem)
 \end{code}
 
+--------------------------------------------------------------------------------
+
 \begin{code}
 desenhaConjuntoImagens :: [Picture] -> Float -> Float -> [[Int]] -> Picture
 desenhaConjuntoImagens pics _ _ []     = blank
@@ -1206,6 +1269,8 @@ desenhaListaInteiros :: [Picture] -> Float -> Float -> [Int] -> Picture
 desenhaListaInteiros pics _ _ []     = blank
 desenhaListaInteiros pics x y (l:ls) = pictures [ put (x,y) (pics !! l) , desenhaListaInteiros pics x (y+80) ls]
 \end{code}
+
+--------------------------------------------------------------------------------
 
 \begin{code}
 randomList :: Int -> IO [Int]
@@ -1228,6 +1293,12 @@ randomNList vezes nr = do
     return (r:rs)
 \end{code}
 
+
+\begin{figure}\centering
+\includegraphics[scale=0.5]{images/truchetResultado.png}
+\caption{Um mosaico de Truchet-Smith resultante da resolução do Problema 5.}
+\label{fig:truchetResultado}
+\end{figure}
 %----------------- Fim do anexo com soluções dos alunos ------------------------%
 
 %----------------- Índice remissivo (exige makeindex) -------------------------%
